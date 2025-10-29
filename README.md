@@ -43,6 +43,16 @@ python .\zincon.py pack lab3
 
 You may also specify the output directory with the option `--out`, relative to the working directory. Otherwise, the tool will create a `submission.zip` under the working directory.
 
+### zincon.py test
+Run testcases on current progress.
+
+```powershell
+python .\zincon.py test lab3 <lab3_entrypoint>.py
+```
+
+Specify testcase filename formats by `--ifmt` and `--ofmt`. Defaults to `input{}.txt` and `output{}.txt`.  
+Override default timeout of 30s using `--timeout`.  
+
 ## Contributing
 
 Contribution is welcome. However, please note that the original intention of this tool is to improve my own zinc workflow, so the tool is customized to my own needs. Please open an issue or PR with a clear description if applicable.
