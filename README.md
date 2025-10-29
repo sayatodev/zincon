@@ -73,7 +73,7 @@ zincon pack lab3
 
 You may also specify the output directory with the option `--out`, relative to the working directory. Otherwise, the tool will create a `submission.zip` under the working directory.
 
-### zincon test \<path> \<entrypoint> [<testcases_dir>]
+### zincon test \<path> \<entrypoint> [\<testcases_dir>]
 Run testcases on current progress.
 
 ```powershell
@@ -82,6 +82,18 @@ zincon test lab3 <lab3_entrypoint>.py
 
 Specify testcase filename formats by `--ifmt` and `--ofmt`. Defaults to `input{}.txt` and `output{}.txt`.  
 Override default timeout of 30s using `--timeout`.  
+
+### zincon browse [docs|zinc] [\<comp_code>] [\<resource>]
+Browse lab materials or open zinc
+
+```powershell
+zincon browse docs 1023 pa1
+zincon browse zinc
+```
+
+Currently, docs url are defined as follow:
+- PAs: _`course.cse.ust.hk/comp{comp_code}/assignments/{resource}/#description`_ 
+- Labs: _`course.cse.ust.hk/comp{comp_code}/labs/{resource}/#labwork`_
 
 ## Contributing
 
