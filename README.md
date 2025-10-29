@@ -8,6 +8,7 @@ A tool that controls all your zinc files, inspired by COMP1023 Labs.
 
 - Extract a skeleton zip and initialise a working directory.
 - Create a submission ZIP in one command.
+- Run all test cases and show diff locally.
 
 ## Requirements
 
