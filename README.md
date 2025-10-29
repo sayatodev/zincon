@@ -13,6 +13,17 @@ Testing currently works for **Python** lab/PAs only. You may modify testing scri
 
 ## Installation
 
+<details>
+<summary><b>New to GitHub? Here are easier step-by-step installation guides</b></summary>
+<ol>
+<li><a href="https://github.com/sayatodev/zincon/archive/refs/heads/main.zip">Download and extract the latest ZIP file</a> of this repository</li>
+<li>Open a terminal/powershell at the extracted directory</li>
+<li><code>cd "path/to/extracted/directory"</code> if you are in the wrong folder</li>
+<li>run <code>pip install .</code></li>
+<li>try to run <code>zincon --help</code>. You should be seeing the zincon command usage</li>
+</ol>
+</details><br>  
+  
 You may install zincon by cloning this repository, then running the following commands, preferably under a **virtual environment**:
 ```sh
 cd path\to\zincon 
