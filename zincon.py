@@ -88,7 +88,7 @@ def init(skeleton_path, out, recursive_backup):
                 os.path.join(tld, item),
                 os.path.join(tmp_dir, item)
             )
-        os.path.remove(tld)
+        os.remove(tld)
 
     # backup existing files
     skeleton_files = os.listdir(tmp_dir)
@@ -123,7 +123,7 @@ def pack(path, out):
     if os.path.exists(out):
         click.confirm(
             f"The file {out} already exists. Do you want to overwrite it?", abort=True)
-        os.path.remove(out)
+        os.remove(out)
 
     # Read .zincon-submit file
     zincon_submit_path = os.path.join(path, '.zincon-submit')
