@@ -94,5 +94,109 @@ def pack(path, out):
         click.echo(f"No .zincon-submit file found in {path}. Packing all files.")
         shutil.make_archive(out, 'zip', path)
 
+
+@cli.command()
+@click.argument('path', required=True, type=click.Path(exists=True))
+@click.argument('entrypoint', required=True, type=click.Path())
+@click.argument('testcases_dir', default="testcases", type=click.Path())
+@click.option('--ifmt', help="Input format", default="input{}.txt")
+@click.option('--ofmt', help="Output format", default="output{}.txt")
+@click.option('--timeout', help="Timeout per test case in seconds", default=30, type=int)
+def test(path, entrypoint, testcases_dir, ifmt, ofmt, timeout):
+    # Verify testcases directory and try absolute path if failed to join
+    joined_testdir = os.path.join(path, testcases_dir)
+    if os.path.exists(joined_testdir):
+        testcases_dir = joined_testdir
+    elif os.path.exists(testcases_dir):
+        testcases_dir = testcases_dir
+    else:
+        click.echo(f"Testcases directory {testcases_dir} does not exist.")
+        return
+
+    # Verify entrypoint file
+    entrypoint_path = os.path.join(path, entrypoint)
+    if os.path.exists(entrypoint_path):
+        entrypoint = entrypoint_path
+    elif os.path.exists(entrypoint):
+        entrypoint = entrypoint
+    else:
+        click.echo(f"Entrypoint file {entrypoint} does not exist.")
+        return
+
+    # Iterate through each input file, find corresponding output file and process
+    results = []
+    for filename in os.listdir(testcases_dir):
+        if re.match(ifmt.format(r'(\d+)'), filename):
+            testcase_num = re.findall(r'\d+', filename)[0]
+            input_path = os.path.join(testcases_dir, filename)
+            output_path = os.path.join(
+                testcases_dir, ofmt.format(testcase_num))
+            click.echo(f"Running test case {testcase_num}...")
+
+            # run test case
+            try:
+                with open(input_path, 'rb') as stdin_f:
+                    proc = subprocess.run([sys.executable, entrypoint], stdin=stdin_f,
+                                          stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=timeout)
+            except subprocess.TimeoutExpired:
+                click.echo(f"Test {testcase_num}: TIMEOUT")
+                results.append((testcase_num, "TIMEOUT", ""))
+                continue
+
+            stdout = proc.stdout.decode(
+                'utf-8', errors='replace').replace('\r\n', '\n')
+            stderr = proc.stderr.decode('utf-8', errors='replace')
+
+            # read expected output if present
+            expected = None
+            if os.path.exists(output_path):
+                with open(output_path, 'r', encoding='utf-8', errors='replace') as ef:
+                    expected = ef.read().replace('\r\n', '\n')
+
+            # Normalize trailing whitespace/newlines for comparison
+            def norm(s):
+                # strip trailing spaces on each line and final trailing newlines
+                return '\n'.join([line.rstrip() for line in s.split('\n')]).rstrip()
+
+            out_norm = norm(stdout)
+            exp_norm = norm(expected) if expected is not None else None
+
+            if expected is None:
+                click.echo(
+                    f"Test {testcase_num}: (no expected output) -- script stdout:\n{stdout}")
+                results.append((testcase_num, "NO EXPECTED OUTPUT", stdout))
+            elif out_norm == exp_norm:
+                click.echo(f"Test {testcase_num}: PASS")
+                results.append((testcase_num, "PASS", stdout))
+            else:
+                click.echo(f"Test {testcase_num}: FAIL")
+                results.append((testcase_num, "FAIL", stdout))
+                # show a small unified diff
+                diff = difflib.unified_diff(
+                    (exp_norm or '').split('\n'),
+                    out_norm.split('\n'),
+                    fromfile='expected',
+                    tofile='actual',
+                    lineterm=''
+                )
+                for line in diff:
+                    click.echo(line)
+                if stderr:
+                    click.echo('\n--- stderr ---')
+                    click.echo(stderr)
+                click.echo('\n\n--- end of test case ---\n\n')
+
+    # Final statistics
+    print("\nSummary of test results:")
+    passed = 0
+    total = 0
+    for testcase_num, status, _ in results:
+        print(f"Test {testcase_num}: {status}")
+        if status == "PASS":
+            passed += 1
+        total += 1
+    print(f"Passed {passed} out of {total} tests.")
+
+
 if __name__ == '__main__':
     cli()
