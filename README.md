@@ -1,6 +1,7 @@
 # zincon
 
 A tool that controls all your zinc files, inspired by COMP1023 Labs.  
+Testing currently works for **Python** lab/PAs only. You may modify testing scripts in `_run_test_case()` to match your need.  
 > I heard that ZINC stands for _ZINC is not CASS_, so I guess Zincon stands for _ZINC is now CONTROLLED_  
 > Btw, it's pronounced as "zinc-con", similar to the abbreviation "sing con"
 
