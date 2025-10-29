@@ -2,11 +2,16 @@ import os
 import click
 import re
 import shutil
+import subprocess
+import sys
+import difflib
 from zipfile import ZipFile
+
 
 @click.group()
 def cli():
     pass
+
 
 @cli.command()
 @click.argument('skeleton_path', required=True)
@@ -19,10 +24,11 @@ def init(skeleton_path, out, recursive_backup):
             out = f"./{match.group(0)}"
         else:
             out = f"./{skeleton_path.rsplit('.', 1)[0]}"
-            
+
     # Check if output directory exists, prompt for confirmation
     if os.path.exists(out):
-        click.confirm(f"The directory {out} already exists. Do you want to overwrite it?", abort=True)
+        click.confirm(
+            f"The directory {out} already exists. Do you want to overwrite it?", abort=True)
         shutil.rmtree(out)
 
     tmp_dir = os.path.join(out, "../.zincon_tmp")
@@ -50,7 +56,7 @@ def init(skeleton_path, out, recursive_backup):
         for file in skeleton_files:
             src = os.path.join(tmp_dir, file)
             shutil.copyfile(src, os.path.join(backup_dir, file))
-            
+
     # create .zincon-submit file
     zincon_submit_path = os.path.join(tmp_dir, '.zincon-submit')
     with open(zincon_submit_path, 'w') as f:
@@ -62,18 +68,20 @@ def init(skeleton_path, out, recursive_backup):
     # clean up temporary directory
     os.rename(tmp_dir, out)
     print(f"Initialized skeleton at {out}")
-    
+
+
 @cli.command()
 @click.argument('path', required=True, type=click.Path(exists=True))
 @click.option('--out', '-o', help="Output zip file path", default=None, type=click.Path())
-def pack(path, out):   
+def pack(path, out):
     # Check if output directory exists, prompt for confirmation
     if out is None:
         out = os.path.join(path, 'submission.zip')
     if os.path.exists(out):
-        click.confirm(f"The file {out} already exists. Do you want to overwrite it?", abort=True)
+        click.confirm(
+            f"The file {out} already exists. Do you want to overwrite it?", abort=True)
         os.path.remove(out)
-    
+
     # Read .zincon-submit file
     zincon_submit_path = os.path.join(path, '.zincon-submit')
     files_to_pack = []
@@ -89,9 +97,11 @@ def pack(path, out):
                 if os.path.exists(file_path):
                     zipf.write(file_path, arcname=file)
                 else:
-                    click.echo(f"Warning: {file} listed in .zincon-submit not found in {path}. Skipping.")
+                    click.echo(
+                        f"Warning: {file} listed in .zincon-submit not found in {path}. Skipping.")
     else:
-        click.echo(f"No .zincon-submit file found in {path}. Packing all files.")
+        click.echo(
+            f"No .zincon-submit file found in {path}. Packing all files.")
         shutil.make_archive(out, 'zip', path)
 
 
