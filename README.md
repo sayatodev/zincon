@@ -23,11 +23,20 @@ pip install click
 
 Tested on Python 3.13.7.
 
+## Installation
+
+You may install zincon by running the following commands, preferably under a **virtual environment**:
+```sh
+cd path\to\zincon 
+pip install -e .
+``` 
+Then you may run `zincon` directly in your environment.
+
+If you wish to use zincon without installing, replace `zincon` with `python path\to\zincon.py` in your commands.
+
 ## Example
 
-Basic usage: `python path\to\zincon.py`.
-
-### zincon.py init
+### zincon init
 Initialize a skeleton from a zip:
 
 ```powershell
@@ -51,7 +60,7 @@ lab0
         output01.txt
 ```
 
-### zincon.py pack
+### zincon pack
 Pack a submission (uses `.zincon-submit` file if present):
 
 ```powershell
@@ -60,7 +69,7 @@ python .\zincon.py pack lab3
 
 You may also specify the output directory with the option `--out`, relative to the working directory. Otherwise, the tool will create a `submission.zip` under the working directory.
 
-### zincon.py test
+### zincon test
 Run testcases on current progress.
 
 ```powershell
