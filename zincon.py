@@ -150,6 +150,7 @@ def pack(path, out):
         click.echo(
             f"No .zincon-submit file found in {path}. Packing all files.")
         shutil.make_archive(out, 'zip', path)
+    print(f"Packed submission to {out}")
 
 
 @cli.command()
@@ -273,6 +274,7 @@ def browse(type, comp_code, resource):
                 click.echo("Comp code argument is ignored for 'zinc' type.")
             url = "https://zinc.cse.ust.hk/assignments"
 
+    print(f"Opening {url} in web browser...")
     webbrowser.open(url)
 
 
