@@ -7,6 +7,48 @@ import sys
 import difflib
 from zipfile import ZipFile
 
+# === Utility functions ===
+
+def _run_test_case(entrypoint, input_path, output_path, timeout=30):
+    """Run a single test case: execute `entrypoint` with stdin from input_path.
+
+    Returns a tuple: (status, stdout, stderr, diff_lines)
+    status is one of: 'PASS', 'FAIL', 'TIMEOUT', 'NO EXPECTED OUTPUT'
+    diff_lines is a list of unified-diff lines when status == 'FAIL', else None.
+    """
+    try:
+        with open(input_path, 'rb') as stdin_f:
+            proc = subprocess.run([sys.executable, entrypoint], stdin=stdin_f,
+                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        return ("TIMEOUT", "", "", None)
+
+    stdout = proc.stdout.decode('utf-8', errors='replace').replace('\r\n', '\n')
+    stderr = proc.stderr.decode('utf-8', errors='replace')
+
+    expected = None
+    if os.path.exists(output_path):
+        with open(output_path, 'r', encoding='utf-8', errors='replace') as ef:
+            expected = ef.read().replace('\r\n', '\n')
+
+    def norm(s):
+        if s is None:
+            return None
+        return '\n'.join([line.rstrip() for line in s.split('\n')]).rstrip()
+
+    out_norm = norm(stdout)
+    exp_norm = norm(expected) if expected is not None else None
+
+    if expected is None:
+        return ("NO EXPECTED OUTPUT", stdout, stderr, None)
+    if out_norm == exp_norm:
+        return ("PASS", stdout, stderr, None)
+
+    diff_lines = list(difflib.unified_diff((exp_norm or '').split('\n'), out_norm.split('\n'), fromfile='expected', tofile='actual', lineterm=''))
+    return ("FAIL", stdout, stderr, diff_lines)
+
+
+# === CLI commands ===
 
 @click.group()
 def cli():
@@ -144,40 +186,26 @@ def test(path, entrypoint, testcases_dir, ifmt, ofmt, timeout):
             click.echo(f"Running test case {testcase_num}...")
 
             # run test case
-            try:
-                with open(input_path, 'rb') as stdin_f:
-                    proc = subprocess.run([sys.executable, entrypoint], stdin=stdin_f,
-                                          stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=timeout)
-            except subprocess.TimeoutExpired:
+            status, stdout, stderr, diff_lines = _run_test_case(entrypoint, input_path, output_path, timeout=timeout)
+
+            if status == "TIMEOUT":
                 click.echo(f"Test {testcase_num}: TIMEOUT")
                 results.append((testcase_num, "TIMEOUT", ""))
                 continue
 
-            stdout = proc.stdout.decode(
-                'utf-8', errors='replace').replace('\r\n', '\n')
-            stderr = proc.stderr.decode('utf-8', errors='replace')
-
-            # read expected output if present
-            expected = None
-            if os.path.exists(output_path):
-                with open(output_path, 'r', encoding='utf-8', errors='replace') as ef:
-                    expected = ef.read().replace('\r\n', '\n')
-
-            # Normalize trailing whitespace/newlines for comparison
-            def norm(s):
-                # strip trailing spaces on each line and final trailing newlines
-                return '\n'.join([line.rstrip() for line in s.split('\n')]).rstrip()
-
-            out_norm = norm(stdout)
-            exp_norm = norm(expected) if expected is not None else None
-
-            if expected is None:
-                click.echo(
-                    f"Test {testcase_num}: (no expected output) -- script stdout:\n{stdout}")
+            if status == "NO EXPECTED OUTPUT":
+                click.echo(f"Test {testcase_num}: (no expected output) -- script stdout:\n{stdout}")
                 results.append((testcase_num, "NO EXPECTED OUTPUT", stdout))
-            elif out_norm == exp_norm:
+                continue
+
+            if status == "PASS":
                 click.echo(f"Test {testcase_num}: PASS")
                 results.append((testcase_num, "PASS", stdout))
+                continue
+
+            # otherwise it's a FAIL
+            click.echo(f"Test {testcase_num}: FAIL")
+            results.append((testcase_num, "FAIL", stdout))
             else:
                 click.echo(f"Test {testcase_num}: FAIL")
                 results.append((testcase_num, "FAIL", stdout))
@@ -190,11 +218,13 @@ def test(path, entrypoint, testcases_dir, ifmt, ofmt, timeout):
                     lineterm=''
                 )
                 for line in diff:
+            if diff_lines:
+                for line in diff_lines:
                     click.echo(line)
-                if stderr:
-                    click.echo('\n--- stderr ---')
-                    click.echo(stderr)
-                click.echo('\n\n--- end of test case ---\n\n')
+            if stderr:
+                click.echo('\n--- stderr ---')
+                click.echo(stderr)
+            click.echo('\n\n--- end of test case ---\n\n')
 
     # Final statistics
     print("\nSummary of test results:")
