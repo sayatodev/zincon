@@ -72,7 +72,7 @@ def pack(path, out):
         out = os.path.join(path, 'submission.zip')
     if os.path.exists(out):
         click.confirm(f"The file {out} already exists. Do you want to overwrite it?", abort=True)
-        shutil.rmtree(out)
+        os.path.remove(out)
     
     # Read .zincon-submit file
     zincon_submit_path = os.path.join(path, '.zincon-submit')
