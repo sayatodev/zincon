@@ -11,21 +11,9 @@ Testing currently works for **Python** lab/PAs only. You may modify testing scri
 - Create a submission ZIP in one command.
 - Run all test cases and show diff locally.
 
-## Requirements
-
-- click
-
-Install dependencies:
-
-```powershell
-pip install click
-```
-
-Tested on Python 3.13.7.
-
 ## Installation
 
-You may install zincon by running the following commands, preferably under a **virtual environment**:
+You may install zincon by cloning this repository, then running the following commands, preferably under a **virtual environment**:
 ```sh
 cd path\to\zincon 
 pip install -e .
@@ -33,6 +21,22 @@ pip install -e .
 Then you may run `zincon` directly in your environment.
 
 If you wish to use zincon without installing, replace `zincon` with `python path\to\zincon.py` in your commands.
+
+## Requirements
+
+If you do not wish to install zincon directly, you will need to install the requirements manually.  
+**If you have successfully installed zincon using `pip install -e .`, you can skip this part.**
+
+### Required packages
+- click
+
+### Install dependencies:
+
+```powershell
+pip install click
+```
+
+Tested on Python 3.13.7.
 
 ## Example
 
