@@ -1,6 +1,6 @@
 [project]
 name = "zincon"
-version = "0.0.1"
+version = "0.0.2"
 description = "CLI for zinc skeletons"
 requires-python = ">=3.8"
 dependencies = [
