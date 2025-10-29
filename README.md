@@ -36,7 +36,7 @@ If you wish to use zincon without installing, replace `zincon` with `python path
 
 ## Example
 
-### zincon init <skeleton_path>
+### zincon init \<skeleton_path>
 Initialize a skeleton from a zip:
 
 ```powershell
@@ -60,7 +60,7 @@ lab0
         output01.txt
 ```
 
-### zincon pack <path>
+### zincon pack \<path>
 Pack a submission (uses `.zincon-submit` file if present):
 
 ```powershell
@@ -69,7 +69,7 @@ zincon pack lab3
 
 You may also specify the output directory with the option `--out`, relative to the working directory. Otherwise, the tool will create a `submission.zip` under the working directory.
 
-### zincon test <path> <entrypoint> [<testcases_dir>]
+### zincon test \<path> \<entrypoint> [<testcases_dir>]
 Run testcases on current progress.
 
 ```powershell
