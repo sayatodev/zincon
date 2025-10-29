@@ -88,7 +88,7 @@ def init(skeleton_path, out, recursive_backup):
                 os.path.join(tld, item),
                 os.path.join(tmp_dir, item)
             )
-        os.remove(tld)
+        os.rmdir(os.path.join(tld))
 
     # backup existing files
     skeleton_files = os.listdir(tmp_dir)
