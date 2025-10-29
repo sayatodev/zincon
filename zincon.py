@@ -5,9 +5,11 @@ import shutil
 import subprocess
 import sys
 import difflib
+import webbrowser
 from zipfile import ZipFile
 
 # === Utility functions ===
+
 
 def _run_test_case(entrypoint, input_path, output_path, timeout=30):
     """Run a single test case: execute `entrypoint` with stdin from input_path.
@@ -23,7 +25,8 @@ def _run_test_case(entrypoint, input_path, output_path, timeout=30):
     except subprocess.TimeoutExpired:
         return ("TIMEOUT", "", "", None)
 
-    stdout = proc.stdout.decode('utf-8', errors='replace').replace('\r\n', '\n')
+    stdout = proc.stdout.decode(
+        'utf-8', errors='replace').replace('\r\n', '\n')
     stderr = proc.stderr.decode('utf-8', errors='replace')
 
     expected = None
@@ -44,7 +47,8 @@ def _run_test_case(entrypoint, input_path, output_path, timeout=30):
     if out_norm == exp_norm:
         return ("PASS", stdout, stderr, None)
 
-    diff_lines = list(difflib.unified_diff((exp_norm or '').split('\n'), out_norm.split('\n'), fromfile='expected', tofile='actual', lineterm=''))
+    diff_lines = list(difflib.unified_diff((exp_norm or '').split(
+        '\n'), out_norm.split('\n'), fromfile='expected', tofile='actual', lineterm=''))
     return ("FAIL", stdout, stderr, diff_lines)
 
 
@@ -188,7 +192,8 @@ def test(path, entrypoint, testcases_dir, ifmt, ofmt, timeout, hide_diff):
             click.echo(f"Running test case {testcase_num}...")
 
             # run test case
-            status, stdout, stderr, diff_lines = _run_test_case(entrypoint, input_path, output_path, timeout=timeout)
+            status, stdout, stderr, diff_lines = _run_test_case(
+                entrypoint, input_path, output_path, timeout=timeout)
 
             if status == "TIMEOUT":
                 click.echo(f"Test {testcase_num}: TIMEOUT")
@@ -196,7 +201,8 @@ def test(path, entrypoint, testcases_dir, ifmt, ofmt, timeout, hide_diff):
                 continue
 
             if status == "NO EXPECTED OUTPUT":
-                click.echo(f"Test {testcase_num}: (no expected output) -- script stdout:\n{stdout}")
+                click.echo(
+                    f"Test {testcase_num}: (no expected output) -- script stdout:\n{stdout}")
                 results.append((testcase_num, "NO EXPECTED OUTPUT", stdout))
                 continue
 
@@ -228,6 +234,46 @@ def test(path, entrypoint, testcases_dir, ifmt, ofmt, timeout, hide_diff):
             passed += 1
         total += 1
     print(f"Passed {passed} out of {total} tests.")
+
+
+@cli.command()
+@click.argument('type', required=False, type=click.Choice(['docs', 'zinc']))
+@click.argument('comp_code', required=False)
+@click.argument('resource', required=False)
+def browse(type, comp_code, resource):
+    if not type:
+        type = click.prompt(
+            "What to browse?",
+            type=click.Choice(['docs', 'zinc']))
+
+    def prompt_comp_code(): return \
+        click.prompt("Please enter the COMP code (e.g., 1023, 1024, etc.)")
+
+    def prompt_resource(): return \
+        click.prompt("Please enter the resource name (e.g., lab1, pa2, etc.)")
+
+    match type:
+        case 'docs':
+            if comp_code is None:
+                comp_code = prompt_comp_code()
+            if resource is None:
+                resource = prompt_resource()
+            if "pa" in resource.lower():
+                url = f"https://course.cse.ust.hk/comp{comp_code}/assignments/{resource}/#description"
+            elif "lab" in resource.lower():
+                url = f"https://course.cse.ust.hk/comp{comp_code}/labs/{resource}/#labwork"
+            else:
+                raise click.BadArgumentUsage(
+                    "Resource name should contain 'lab' or 'pa' to determine the type.")
+
+        case 'zinc':
+            if resource:
+                click.echo("Resource argument is ignored for 'zinc' type.")
+            if comp_code:
+                click.echo("Comp code argument is ignored for 'zinc' type.")
+            url = "https://zinc.cse.ust.hk/assignments"
+
+    webbrowser.open(url)
 
 
 if __name__ == '__main__':
