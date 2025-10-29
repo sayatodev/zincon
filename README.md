@@ -34,6 +34,21 @@ python .\zincon.py init path\to\skeleton.zip --out lab3
 
 Or, if the skeleton zip contains `lab\d+` in its filename, you may omit `--out` and the tool will use the matched `lab\d+` as the output directory.
 
+Example output structure:
+```
+lab0
+│  .zincon-submit
+│  lab0_skeleton.py
+├─backup
+│  │  lab0_skeleton.py
+│  └─testcases
+│          input01.txt
+│          output01.txt
+└─testcases
+        input01.txt
+        output01.txt
+```
+
 ### zincon.py pack
 Pack a submission (uses `.zincon-submit` file if present):
 
