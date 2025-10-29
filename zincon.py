@@ -154,7 +154,8 @@ def pack(path, out):
 @click.option('--ifmt', help="Input format", default="input{}.txt")
 @click.option('--ofmt', help="Output format", default="output{}.txt")
 @click.option('--timeout', help="Timeout per test case in seconds", default=30, type=int)
-def test(path, entrypoint, testcases_dir, ifmt, ofmt, timeout):
+@click.option('--hide-diff', is_flag=True, help="Hide diff output for failed test cases")
+def test(path, entrypoint, testcases_dir, ifmt, ofmt, timeout, hide_diff):
     # Verify testcases directory and try absolute path if failed to join
     joined_testdir = os.path.join(path, testcases_dir)
     if os.path.exists(joined_testdir):
@@ -206,18 +207,8 @@ def test(path, entrypoint, testcases_dir, ifmt, ofmt, timeout):
             # otherwise it's a FAIL
             click.echo(f"Test {testcase_num}: FAIL")
             results.append((testcase_num, "FAIL", stdout))
-            else:
-                click.echo(f"Test {testcase_num}: FAIL")
-                results.append((testcase_num, "FAIL", stdout))
-                # show a small unified diff
-                diff = difflib.unified_diff(
-                    (exp_norm or '').split('\n'),
-                    out_norm.split('\n'),
-                    fromfile='expected',
-                    tofile='actual',
-                    lineterm=''
-                )
-                for line in diff:
+            if hide_diff:
+                continue
             if diff_lines:
                 for line in diff_lines:
                     click.echo(line)
