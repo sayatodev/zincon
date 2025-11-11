@@ -67,15 +67,16 @@ def cli():
 @click.option('--recursive-backup', default=True, is_flag=True, help="Enable recursive backup of existing files")
 def init(skeleton_path_or_url, out, recursive_backup):
     if out is None:
-        match = re.search(r'lab\d+', skeleton_path_or_url)
+        match = re.search(r'(lab|pa)\d+', skeleton_path_or_url)
         if match:
             out = f"./{match.group(0)}"
         else:
-            out = f"./{skeleton_path_or_url.rsplit('.', 1)[0]}"
+            out = f"./{skeleton_path_or_url.rsplit('.', 1)[0].split("/")[-1]}"
 
     # Check for URL
     if re.match(r'^https?://', skeleton_path_or_url):
-        click.echo(f"Downloading skeleton from {skeleton_path_or_url}...\x1b[1K\r", nl=False)
+        click.echo(
+            f"Downloading skeleton from {skeleton_path_or_url}...\x1b[1K\r", nl=False)
         response = requests.get(skeleton_path_or_url)
         if response.status_code != 200:
             click.echo(
