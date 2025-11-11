@@ -6,6 +6,8 @@ import subprocess
 import sys
 import difflib
 import webbrowser
+import tempfile
+import requests
 from zipfile import ZipFile
 
 # === Utility functions ===
@@ -60,16 +62,32 @@ def cli():
 
 
 @cli.command()
-@click.argument('skeleton_path', required=True)
+@click.argument('skeleton_path_or_url', required=True)
 @click.option('--out', '-o', help="Output directory", default=None, type=click.Path())
 @click.option('--recursive-backup', default=True, is_flag=True, help="Enable recursive backup of existing files")
-def init(skeleton_path, out, recursive_backup):
+def init(skeleton_path_or_url, out, recursive_backup):
     if out is None:
-        match = re.search(r'lab\d+', skeleton_path)
+        match = re.search(r'lab\d+', skeleton_path_or_url)
         if match:
             out = f"./{match.group(0)}"
         else:
-            out = f"./{skeleton_path.rsplit('.', 1)[0]}"
+            out = f"./{skeleton_path_or_url.rsplit('.', 1)[0]}"
+
+    # Check for URL
+    if re.match(r'^https?://', skeleton_path_or_url):
+        click.echo(f"Downloading skeleton from {skeleton_path_or_url}...\x1b[1K\r", nl=False)
+        response = requests.get(skeleton_path_or_url)
+        if response.status_code != 200:
+            click.echo(
+                f"Failed to download skeleton from {skeleton_path_or_url}. HTTP status code: {response.status_code}")
+            exit(1)
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.zip') as tmp_file:
+            tmp_file.write(response.content)
+            click.echo("Download complete.")
+            skeleton_path = tmp_file.name
+        click.echo()
+    else:
+        skeleton_path = skeleton_path_or_url
 
     # Check if output directory exists, prompt for confirmation
     if os.path.exists(out):
