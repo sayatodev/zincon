@@ -51,14 +51,17 @@ Tested on Python 3.13.7.
 
 ## Example
 
-### zincon init \<skeleton_path>
+### zincon init \<skeleton_path_or_url>
 Initialize a skeleton from a zip:
 
 ```powershell
+# Download directly 
+zincon init https://course.cse.ust.hk/.../path/to/labX_skeleton.zip
+# Or, use a local ZIP file
 zincon init path\to\skeleton.zip --out lab3
 ```
 
-Or, if the skeleton zip contains `lab\d+` in its filename, you may omit `--out` and the tool will use the matched `lab\d+` as the output directory.
+If the skeleton zip contains `lab\d+` in its filename, you may omit `--out` and the tool will use the matched `lab\d+` as the output directory.
 
 Example output structure:
 ```
